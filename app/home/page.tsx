@@ -22,7 +22,7 @@ const Home: React.FC = () => {
     }
   };
 
-  const streamAdded = (id) => {
+  const streamAdded = (id:string) => {
     console.log("page added: ", id)
     setRemoteUserIds((prevIds) => [...prevIds, id]);
   }
