@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import LocalUserStream from '../../components/userStream/localUserStream';
 import { webrtcService } from '../../services/webRTCService';
 import RemoteUserStream from '../../components/userStream/remoteUserStream';
+import MessagingPanel from '../../components/messaging/messagingPanel';
 
 const Home: React.FC = () => {
 
@@ -35,7 +36,7 @@ const Home: React.FC = () => {
 
     return () => {
       webrtcService.unSubscribeToStreamAdd(streamAdded);
-    }; 
+    };
   }, []);
 
   console.log(remoteUserIds)
@@ -60,21 +61,26 @@ const Home: React.FC = () => {
             <button onClick={joinRoom}>Join Room</button>
           </div>
         ) : (
+          <>
 
-
-          <div className="w-screen h-screen flex flex-wrap">
-            <div className="w-1/2  bg-red-500">
-              <LocalUserStream></LocalUserStream>
+            <div>
+              <MessagingPanel></MessagingPanel>
             </div>
-            {remoteUserIds.map((id) => (
-              <div key={id} className="w-1/2   bg-green-500">
-                <RemoteUserStream socketId={id} />
+
+            <div className="w-screen h-screen flex flex-wrap">
+              <div className="w-1/2  bg-red-500">
+                <LocalUserStream></LocalUserStream>
               </div>
-            ))}
-          </div>
+              {remoteUserIds.map((id) => (
+                <div key={id} className="w-1/2   bg-green-500">
+                  <RemoteUserStream socketId={id} />
+                </div>
+              ))}
+            </div>
 
 
 
+          </>
         )}
       </div>
 

@@ -1,4 +1,5 @@
 import io, { Socket } from 'socket.io-client';
+import { Message } from '../interfaces/messages';
 
 class WebRTCService {
   private socket: Socket | null = null;
@@ -8,11 +9,18 @@ class WebRTCService {
   private onStreamAdded: ((id: string, stream: MediaStream) => void)[] = [];
   private onStreamRemoved: ((id: string) => void)[] = [];
 
+  private onMessage: ((message: Message) => void)[] = [];
+
+  private roomName:string = "";
+  private playerName:string = "";
+
+
   constructor() {
     this.socket = io('http://localhost:3001');
     this.socket.on('signal', this.handleSignal);
     this.socket.on('newPeer', this.handleNewPeer);
     this.socket.on('peerDisconnected', this.handlePeerDisconnected);
+    this.socket.on('message', this.handleMessage);
   }
 
   public async initLocalStream(): Promise<MediaStream> {
@@ -22,7 +30,6 @@ class WebRTCService {
   }
 
   public subscribeToStreamAdd(callback: (id: string, stream: MediaStream) => void) {
-    console.log("on stream added")
     this.onStreamAdded.push(callback);
   }
 
@@ -37,6 +44,9 @@ class WebRTCService {
   public joinRoom(roomName: string, playerName: string) {
     if (this.socket) {
       this.socket.emit('joinRoom', { roomName, playerName });
+
+      this.roomName = roomName;
+      this.playerName = playerName
     }
   }
 
@@ -131,6 +141,28 @@ class WebRTCService {
     //     });
     //   });
     // }
+  }
+
+  public sendMessage(message: string) {
+    if (this.socket) {
+      this.socket.emit('message', {
+        roomName: this.roomName,
+        playerName: this.playerName,
+        message: message 
+      });
+    }
+  }
+
+  private handleMessage = (message: Message) => {
+    this.onMessage.forEach(callback => callback(message));
+  };
+
+  public subscribeToMessage = (callback: (message: Message) => void)=>{
+    this.onMessage.push(callback);
+  }
+
+  public unSubscribeToMessage = (callback: (message: Message) => void)=>{
+    this.onMessage = this.onMessage.filter((checkCallback)=>{checkCallback != callback})
   }
 }
 
