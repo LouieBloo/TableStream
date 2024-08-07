@@ -16,7 +16,7 @@ class WebRTCService {
 
 
   constructor() {
-    this.socket = io("http://tablestream-env.eba-bq9235b6.us-west-1.elasticbeanstalk.com" || 'http://localhost:3001');
+    this.socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001');
     this.socket.on('signal', this.handleSignal);
     this.socket.on('newPeer', this.handleNewPeer);
     this.socket.on('peerDisconnected', this.handlePeerDisconnected);
