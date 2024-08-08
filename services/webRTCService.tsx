@@ -50,12 +50,12 @@ class WebRTCService {
     }
   }
 
-  public getStream(socketId:string){
-    if(this.remoteStreams[socketId]){
-      return this.remoteStreams[socketId]
-    }
-    return null;
-  }
+  // public getStream(socketId:string){
+  //   if(this.remoteStreams[socketId]){
+  //     return this.remoteStreams[socketId]
+  //   }
+  //   return null;
+  // }
 
   private handleSignal = async (data: { from: string; signal: any }) => {
 
@@ -111,8 +111,16 @@ class WebRTCService {
     };
 
     peerConnection.ontrack = (event) => {
-      this.remoteStreams[socketId] = event.streams[0];
-      this.onStreamAdded.forEach(callback => callback(socketId, event.streams[0]));
+      console.log("On track: ", event)
+      if (!this.remoteStreams[socketId]) {
+        this.remoteStreams[socketId] = new MediaStream();
+      }
+      event.streams[0].getTracks().forEach(track => {
+        this.remoteStreams[socketId].addTrack(track);
+      });
+      console.log("on track length ", this.onStreamAdded.length)
+      //this.remoteStreams[socketId] = event.streams[0];
+      this.onStreamAdded.forEach(callback => callback(socketId, this.remoteStreams[socketId]));
     };
 
     if (this.localStream) {
@@ -133,14 +141,7 @@ class WebRTCService {
         console.error('Error during negotiation', error);
       }
     };
-
-    // if (this.socket) {
-    //   peerConnection.createOffer().then((offer) => {
-    //     peerConnection.setLocalDescription(offer).then(() => {
-    //       this.socket?.emit('signal', { to: socketId, signal: peerConnection.localDescription });
-    //     });
-    //   });
-    // }
+ 
   }
 
   public sendMessage(message: string) {
