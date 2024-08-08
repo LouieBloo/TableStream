@@ -133,7 +133,10 @@ class WebRTCService {
     peerConnection.onnegotiationneeded = async () => {
       try {
         if (peerConnection.signalingState === 'stable') {
-          const offer = await peerConnection.createOffer();
+          const offer = await peerConnection.createOffer({
+            offerToReceiveVideo: true,
+            offerToReceiveAudio: false
+          });
           await peerConnection.setLocalDescription(offer);
           this.socket?.emit('signal', { to: socketId, signal: peerConnection.localDescription });
         }
