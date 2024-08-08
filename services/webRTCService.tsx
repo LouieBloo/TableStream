@@ -24,8 +24,10 @@ class WebRTCService {
   }
 
   public async initLocalStream(): Promise<MediaStream> {
+    if(this.localStream){return this.localStream}
+
     this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    console.log(this.localStream)
+    console.log("init local stream: ", this.localStream)
     return this.localStream;
   }
 
@@ -66,6 +68,8 @@ class WebRTCService {
       this.createPeerConnection(from);
     }
     const peerConnection = this.peerConnections[from];
+
+    console.log("signal type: ", signal.type)
     if (signal.type === 'offer') {
       await peerConnection.setRemoteDescription(new RTCSessionDescription(signal));
       const answer = await peerConnection.createAnswer();
@@ -96,7 +100,7 @@ class WebRTCService {
     this.onStreamRemoved.forEach(callback => callback(socketId));
   };
 
-  private createPeerConnection(socketId: string) {
+  private async createPeerConnection(socketId: string) {
     console.log("Creating peer connection: ", socketId)
     const configuration = {
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] // Add Google STUN server
@@ -123,20 +127,27 @@ class WebRTCService {
       this.onStreamAdded.forEach(callback => callback(socketId, this.remoteStreams[socketId]));
     };
 
-    if (this.localStream) {
-      this.localStream.getTracks().forEach((track) => {
-        peerConnection.addTrack(track, this.localStream!);
-      });
-    }
+    // if (this.localStream) {
+    //   this.localStream.getTracks().forEach((track) => {
+    //     peerConnection.addTrack(track, this.localStream!);
+    //   });
+    // }
 
     // Listen for negotiation needed event to handle offer/answer exchange
     peerConnection.onnegotiationneeded = async () => {
+      console.log("onnegationation")
       try {
         if (peerConnection.signalingState === 'stable') {
+          console.log("onnegationation stable")
           const offer = await peerConnection.createOffer({
             offerToReceiveVideo: true,
             offerToReceiveAudio: false
           });
+
+          // let localS = await this.initLocalStream()
+          // localS.getTracks().forEach((track) => {
+          //   peerConnection.addTrack(track, this.localStream!);
+          // });
           await peerConnection.setLocalDescription(offer);
           this.socket?.emit('signal', { to: socketId, signal: peerConnection.localDescription });
         }
@@ -144,6 +155,13 @@ class WebRTCService {
         console.error('Error during negotiation', error);
       }
     };
+
+
+    let localS = await this.initLocalStream()
+    localS.getTracks().forEach((track) => {
+      console.log("adding local tracks");
+      peerConnection.addTrack(track, this.localStream!);
+    });
  
   }
 
