@@ -9,12 +9,7 @@ const RemoteUserStream: React.FC<RemoteUserStreamProps> = ({ socketId }) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
-    // webrtcService.setOnStreamAdded((id, newStream) => {
-    //   console.log("on stream fired")
-    //   if (id === socketId) {
-    //     setStream(newStream);
-    //   }
-    // });
+    webrtcService.subscribeToStreamAdd(streamAdded);
 
     webrtcService.setOnStreamRemoved((id) => {
       if (id === socketId) {
@@ -26,11 +21,18 @@ const RemoteUserStream: React.FC<RemoteUserStreamProps> = ({ socketId }) => {
     if(stream){
       setStream(stream);
     }
-    // return () => {
-    //   webrtcService.setOnStreamAdded(() => {});
-    //   webrtcService.setOnStreamRemoved(() => {});
-    // };
+    
+    return () => {
+      webrtcService.unSubscribeToStreamAdd(streamAdded);
+    };
   }, []);
+
+  const streamAdded = (id:string, newStream: MediaStream) => {
+    console.log("remote stream added: ", id)
+    if (id === socketId) {
+      setStream(newStream);
+    }
+  } 
 
 
   return (
