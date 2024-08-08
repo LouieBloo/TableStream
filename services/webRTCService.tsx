@@ -50,12 +50,12 @@ class WebRTCService {
     }
   }
 
-  // public getStream(socketId:string){
-  //   if(this.remoteStreams[socketId]){
-  //     return this.remoteStreams[socketId]
-  //   }
-  //   return null;
-  // }
+  public getStream(socketId:string){
+    if(this.remoteStreams[socketId]){
+      return this.remoteStreams[socketId]
+    }
+    return null;
+  }
 
   private handleSignal = async (data: { from: string; signal: any }) => {
 
